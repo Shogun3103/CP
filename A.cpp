@@ -16,52 +16,78 @@ using namespace std;
 #define Y second
 #define fill(a, b) memset(a, b, sizeof(a))
 #define ed "\n"
-#define MOD = (int)1000000000 + 7;
+#define MOD (ll)1e9 + 7;
 
-const int N = 2e5 + 1;
-int a[N];
+const int N = 1e5 + 1;
+int low[N], num[N], tDfs, scc, comp[N], a[N], mini[N], cnt[N];
+vt<int> g[N];
+stack<int> st;
 
-int c3(int a, int b, int c)
+void tarjan(int u)
 {
-    if(a <= b && b <= c)
-        return 0;
-    if(a >= b && b >= c)
-        return 0;
-    return 1;
-}
+    low[u] = num[u] = ++tDfs;
+    st.push(u);
+    for(int v:g[u]) {
+        if(num[v])
+            low[u] = min(low[u], num[v]);
+        else {
+            tarjan(v);
+            low[u] = min(low[u], low[v]);
+        }
+    }
 
-int c4(int a, int b, int c, int d)
-{
-    if(!c3(a, b, c))
-        return 0;
-    if(!c3(a, b, d))
-        return 0;
-    if(!c3(a, c, d))
-        return 0;
-    if(!c3(b, c, d))
-        return 0;
-    return 1;
+    if(low[u] == num[u]) {
+        ++scc;
+        int v;
+        do {
+            v = st.top();
+            st.pop();
+            low[v] = num[v] = MOD;
+            comp[v] = scc;
+        } while(u != v);
+    }
 }
 
 void solve()
 {
-    int n,a,b;
-    cin >> n >> a >> b;
-    string s;
-    cin >> s;
+    int n, m;
+    cin >> n;
+    FOR(i, 1, n)
+        cin >> a[i];
 
-    int cnt = 0;
+    cin >> m;
+    FOR(i, 1, m) {
+        int u, v;
+        cin >> u >> v;
+        g[u].pb(v);
+    }
 
-    for(int i=1; i<n; i++)
-    {
-        if(s[i]!=s[i-1])
-        {
-            cnt++;
+    FOR(i, 1, n)
+        if(!num[i])
+            tarjan(i);
+
+    FOR(i, 1, scc)
+        mini[i] = 2 * MOD;
+
+    FOR(i, 1, n) {
+        int c = comp[i];
+        int w = a[i];
+        if(mini[c] > w) {
+            mini[c] = w;
+            cnt[c] = 1;
+        } else if(mini[c] == w) {
+            cnt[c]++;
         }
     }
-    cout << max(a*n+b*n, a*n + ( (cnt+1)/2 + 1 )*b  ) << '\n';
-    return;
 
+    ll x = 0, y = 1;
+    FOR(i, 1, scc) {
+        x += mini[i];
+        y *=(ll)cnt[i];
+        y %= MOD;
+    }
+
+    cout << x << " " << y;
 }
 
 int main()
@@ -69,8 +95,8 @@ int main()
     faster;
 
     int t;
-    ///t = 1;
-    cin >> t;
+    t = 1;
+    ///cin >> t;
     while(t--) {
         solve();
     }
